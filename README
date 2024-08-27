@@ -1,4 +1,4 @@
-Porting rlsoc to apache nuttx
+Porting rlsoc to apache nuttx 12.5.1
 considering that you know road-to-linux repository
 
 0. config nuttx
