@@ -1,0 +1,169 @@
+Porting rlsoc to apache nuttx
+considering that you know road-to-linux repository
+
+0. config nuttx
+cd nuttx
+cp config-nuttx .config
+
+1. ensure that 
+boards/risc-v/qemu-rv/rv-virt/scripts/ld.script has 
+#define TEXT_ADDR     0x80000000
+
+arch/risc-v/src/qemu-rv/hardware/qemu_rv_memorymap.h has
+#define QEMU_RV_CLINT_BASE   0x60000000
+#define QEMU_RV_ACLINT_BASE  0x60000000
+#define QEMU_RV_PLIC_BASE    0x50000000
+
+include/nuttx/serial/uart_16550.h
+#ifdef CONFIG_16550_UART
+void pr_laur(char *s, unsigned long n);
+
+
+drivers/serial/uart_16550.c
+static inline uart_datawidth_t u16550_serialin(FAR struct u16550_s *priv,
+                                               int offset)
+{
+  return 0;
+#ifdef CONFIG_SERIAL_UART_ARCH_MMIO
+//  return *((FAR volatile uart_datawidth_t *)priv->uartbase + offset);
+#else
+//  return uart_getreg(priv->uartbase, offset);
+#endif
+}
+
+static inline void u16550_serialout(FAR struct u16550_s *priv, int offset,
+                                    uart_datawidth_t value)
+{
+#ifdef CONFIG_SERIAL_UART_ARCH_MMIO
+//  *((FAR volatile uart_datawidth_t *)priv->uartbase + offset) = value;
+#else
+//  uart_putreg(priv->uartbase, offset, value);
+#endif
+}
+
+static int u16550_wait(FAR struct u16550_s *priv)
+{
+  return OK;
+#if 0
+
+#ifdef HAVE_16550_CONSOLE
+void u16550_putc(FAR struct u16550_s *priv, int ch)
+{
+  //irqstate_t flags;
+
+  *(volatile int *) 0x40008000 = ch;
+//#ifdef laur0
+  //flags = spin_lock_irqsave(NULL);
+  //while ((u16550_serialin(priv, UART_LSR_OFFSET) & UART_LSR_THRE) == 0);
+  //u16550_serialout(priv, UART_THR_OFFSET, (uart_datawidth_t)ch);
+  //spin_unlock_irqrestore(NULL, flags);
+//#endif
+}
+
+void pr_laur(char *s, unsigned long n)
+{
+        int i;
+        unsigned char c, v[8];
+
+        i = 0;
+        while (s[i])
+                sbi_console_putchar(s[i++]);
+        sbi_console_putchar(' ');
+        if(n == 0) {
+                sbi_console_putchar('0');
+        sbi_console_putchar('\r');
+                sbi_console_putchar('\n');
+                return;
+        }
+
+        for(i = 0; i < 8; i++) {
+                c = n & 0xf;
+                if(c < 10)
+                        v[i] = '0'+c;
+                else
+                        v[i] = 'a'-10+c;
+                n = n >> 4;
+        }
+        for(i = 7; i >= 0; i--)
+                sbi_console_putchar(v[i]);
+        sbi_console_putchar('\r');
+        sbi_console_putchar('\n');
+}
+
+arch/risc-v/src/qemu-rv/qemu_rv_head.S
+to see that nuttx starts, write '1' to console
+__start:
+
+   lui     t3,0x40008
+   li      t4,0x31
+   sw      t4,0(t3)
+
+arch/risc-v/src/qemu-rv/qemu_rv_timerisr.c
+#define MTIMER_FREQ 27000000
+#define TICK_COUNT (27000000 / TICK_PER_SEC)
+
+arch/risc-v/src/common/riscv_mtimer.c only two 32bit writes to mtimecmp
+static void riscv_mtimer_set_mtimecmp(struct riscv_mtimer_lowerhalf_s *priv,
+                                      uint64_t value)
+{
+..
+      //putreg32(UINT32_MAX, priv->mtimecmp + 4);
+
+make -j
+
+
+2. in define.vh
+`define NUTTX_FLAT 
+
+3. initmem_gen2
+copy from this repository
+
+4. rlsoc2 repository cp to rvsoc_src_ver053/src
+build-nuttx.sh
+set -x
+set -e
+cd ../../initmem_gen2
+./run-nuttx.sh
+cd ../rvsoc_src_ver053/src
+cp ../../initmem_gen2/init_kernel.txt ../binary/
+#cp ../../initmem_gen2/init_disk.txt ../binary/
+cp ../../initmem_gen2/initmem.bin ../binary/
+
+5. in the nuttx apps folder,
+replace in smp_main.c
+printf with _info
+and
+#include <debug.h>
+#define HOG_MSEC       10 //1000
+#define YIELD_MSEC     1 //100
+
+ostest_main.c
+../apps/testing/ostest/roundrobin.c
+decrease CONFIG_TESTING_OSTEST_RR_RUNS, CONFIG_TESTING_OSTEST_RR_RANGE for a faster run
+
+6.
+cd src
+./run-nuttx.sh
+
+7.
+11ABC[CPU0] up_cpu_start: CPU=1
+[CPU1] riscv_cpu_boot: CPU1 Started
+[CPU0] show_cpu:   Main[0]: Running on CPU0
+[CPU0] smp_main:   Main[0]: Initializing barrier
+[CPU1] barrier_thread: Thread[1]: Started
+[CPU1] show_cpu: Thread[1]: Running on CPU1
+[CPU0] smp_main:   Main[0]: Thread 1 created
+[CPU0] smp_main:   Main[0]: Thread[CPU1] barrier_thread: Thread[2]: Started
+[CPU1] show_cpu: Thread[2]: Running on CPU1
+ 2 created
+[CPU0] show_cpu_conditional: Thread[1]: Now running on CPU0
+[CPU1] barrier_thread: Thread[2]: Calling pthread_barrier_wait()
+[CPU0] barrier_thread: Thread[1]: Calling pthread_barrier_wait()
+[CPU1] barrier_thread: Thread[2]: Back with ret=0 (I am not special)
+[CPU0] barrier_thread: Thread[1]: Back with ret=PTHREAD_BARRIER_SERIAL_THREAD (I AM SPECIAL)
+[CPU1] barrier_thread: Thread[2]: Done
+[CPU0] barrier_thread: Thread[1]: Done
+[CPU1] show_cpu_conditional:   Main[0]: Now running on CPU1
+[CPU1] smp_main:   Main[0]: Thread 1 completed with result=0
+[CPU1] smp_main:   Main[0]: Thread 2 completed with result=0
+
