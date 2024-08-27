@@ -112,7 +112,7 @@ static void riscv_mtimer_set_mtimecmp(struct riscv_mtimer_lowerhalf_s *priv,
 make -j
 
 
-2. in define.vh
+4.2. in define.vh
 `define NUTTX_FLAT 
 
 3. initmem_gen2
