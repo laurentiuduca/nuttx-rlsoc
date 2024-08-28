@@ -60,6 +60,11 @@ void u16550_putc(FAR struct u16550_s *priv, int ch)
 //#endif
 }
 
+void console_putchar(int ch)
+{
+  *(volatile int *) 0x40008000 = ch;
+}
+
 void pr_laur(char *s, unsigned long n)
 {
         int i;
@@ -67,12 +72,12 @@ void pr_laur(char *s, unsigned long n)
 
         i = 0;
         while (s[i])
-                sbi_console_putchar(s[i++]);
-        sbi_console_putchar(' ');
+                console_putchar(s[i++]);
+        console_putchar(' ');
         if(n == 0) {
-                sbi_console_putchar('0');
-        sbi_console_putchar('\r');
-                sbi_console_putchar('\n');
+                console_putchar('0');
+        console_putchar('\r');
+                console_putchar('\n');
                 return;
         }
 
@@ -85,9 +90,9 @@ void pr_laur(char *s, unsigned long n)
                 n = n >> 4;
         }
         for(i = 7; i >= 0; i--)
-                sbi_console_putchar(v[i]);
-        sbi_console_putchar('\r');
-        sbi_console_putchar('\n');
+                console_putchar(v[i]);
+        console_putchar('\r');
+        console_putchar('\n');
 }
 
 arch/risc-v/src/qemu-rv/qemu_rv_head.S
