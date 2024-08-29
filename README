@@ -5,6 +5,10 @@ considering that you know road-to-linux repository
 cd nuttx
 cp config-nuttx .config
 
+it was derived from
+./tools/configure.sh rv-virt/nsh
+diff configure files to see difference
+
 1. ensure that 
 boards/risc-v/qemu-rv/rv-virt/scripts/ld.script has 
 #define TEXT_ADDR     0x80000000
