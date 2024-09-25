@@ -753,7 +753,7 @@ void nx_start(void)
 
   /* Bring Up the System ****************************************************/
     int ret = irq_attach(RISCV_IRQ_EXT+1, riscv_ext_int_1, NULL);
-  _info("irq_attach %x returns %d\n", RISCV_IRQ_EXT+1, ret);
+  //_info("irq_attach %x returns %d\n", RISCV_IRQ_EXT+1, ret);
 
   /* The OS is fully initialized and we are beginning multi-tasking */
 
