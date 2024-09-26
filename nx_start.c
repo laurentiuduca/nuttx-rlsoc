@@ -494,7 +494,7 @@ static void idle_group_initialize(void)
 
 int riscv_ext_int_1(int irq, void *c, void *arg)
 {
-	// led on
+	// interrupt ack
 	*(int *) 0x3ffffffc = 1;
         //_info("ext int\n");
 
