@@ -205,7 +205,7 @@ int main(int argc, FAR char *argv[])
   int ret;
   int i;
 
-#if 0
+#ifdef TEST_INTERRUPTS 
   // arm plic ext int 1
   _info("arming plic .. ");
   *(volatile int *)0x3ffffffc = 100;
