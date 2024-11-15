@@ -1,7 +1,11 @@
 Porting rlsoc to apache nuttx 12.5.1
 considering that you know road-to-linux repository
 
-i. we modify qemu-rv to use nuttx on rlsoc
+i.
+download nuttx from https://nuttx.apache.org/download
+
+ii. 
+we modify qemu-rv to use nuttx on rlsoc
 cp qemu_rv_irq_dispatch.c ../nuttx/arch/risc-v/src/qemu-rv/
 cp nx_start.c ../nuttx/sched/init/
 
