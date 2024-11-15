@@ -6,10 +6,9 @@ cp qemu_rv_irq_dispatch.c ../nuttx/arch/risc-v/src/qemu-rv/
 cp nx_start.c ../nuttx/sched/init/
 
 0. config nuttx
+./tools/configure.sh rv-virt/nsh
 cp config-nuttx ../nuttx/.config
 
-it was derived from
-./tools/configure.sh rv-virt/nsh
 diff configure files to see difference
 
 1. ensure that 
