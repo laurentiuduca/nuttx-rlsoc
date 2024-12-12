@@ -12,6 +12,8 @@ cp nx_start.c ../nuttx/sched/init/
 0. config nuttx
 ./tools/configure.sh rv-virt/nsh
 cp config-nuttx ../nuttx/.config
+- note CONFIG_RAM_START=0x80000000
+CONFIG_RAM_SIZE=8388608
 
 diff configure files to see difference
 
