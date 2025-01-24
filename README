@@ -27,6 +27,10 @@ arch/risc-v/src/qemu-rv/hardware/qemu_rv_memorymap.h has
 #define QEMU_RV_ACLINT_BASE  0x60000000
 #define QEMU_RV_PLIC_BASE    0x50000000
 
+arch/risc-v/src/qemu-rv/hardware/qemu_rv_clint.h
+#define QEMU_RV_CLINT_MTIMECMP  (QEMU_RV_CLINT_BASE + 0x0010) //0x4000)
+#define QEMU_RV_CLINT_MTIME     (QEMU_RV_CLINT_BASE + 0x0008) //0xbff8)
+
 include/nuttx/serial/uart_16550.h
 #ifdef CONFIG_16550_UART
 void pr_laur(char *s, unsigned long n);
