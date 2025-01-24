@@ -6,6 +6,7 @@ download nuttx from https://nuttx.apache.org/download
 
 ii. 
 we modify qemu-rv to use nuttx on rlsoc
+# for external interrupts
 cp qemu_rv_irq_dispatch.c ../nuttx/arch/risc-v/src/qemu-rv/
 cp nx_start.c ../nuttx/sched/init/
 
