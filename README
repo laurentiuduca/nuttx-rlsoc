@@ -31,6 +31,20 @@ arch/risc-v/src/qemu-rv/hardware/qemu_rv_clint.h
 #define QEMU_RV_CLINT_MTIMECMP  (QEMU_RV_CLINT_BASE + 0x0010) //0x4000)
 #define QEMU_RV_CLINT_MTIME     (QEMU_RV_CLINT_BASE + 0x0008) //0xbff8)
 
+
+arch/risc-v/src/common/riscv_mtimer.c
+#include <riscv_internal.h>
+static void riscv_mtimer_set_mtimecmp(struct riscv_mtimer_lowerhalf_s *priv,
+                                      uint64_t value)
+{   
+    ...{
+      //putreg32(UINT32_MAX, priv->mtimecmp + 4);
+      putreg32(value, priv->mtimecmp + (8 * riscv_cpuid_to_hartid(cpu)));
+      putreg32(value >> 32, priv->mtimecmp + 4 + (8 * riscv_cpuid_to_hartid(cpu)));
+    }...
+}
+
+
 include/nuttx/serial/uart_16550.h
 #ifdef CONFIG_16550_UART
 void pr_laur(char *s, unsigned long n);
